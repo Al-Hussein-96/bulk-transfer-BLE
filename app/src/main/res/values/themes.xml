@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.Bulktransfer" parent="Theme.MaterialComponents.Light" />
+</resources>

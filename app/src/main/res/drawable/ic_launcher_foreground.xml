@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Group for centering and safety -->
+    <!-- The safe zone is roughly 66dp centered in 108dp. (108-66)/2 = 21dp margin. -->
+
+    <!-- Main Voucher Background (Centered) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,40
+                          L30,48
+                          A4,4 0 0 1 30,56
+                          L30,64
+                          L78,64
+                          L78,56
+                          A4,4 0 0 1 78,48
+                          L78,40
+                          Z" />
+
+    <!-- Transfer Indicator (Arrows inside voucher) -->
+    <!-- Sender Arrow (Top-Right-ish) -->
+    <path
+        android:fillColor="#0061A4"
+        android:pathData="M54,44 L64,44 L64,40 L72,48 L64,56 L64,52 L54,52 Z" />
+
+    <!-- Receiver Arrow (Bottom-Left-ish) -->
+    <path
+        android:fillColor="#0061A4"
+        android:pathData="M54,52 L44,52 L44,56 L36,48 L44,40 L44,44 L54,44 Z" />
+
+    <!-- Connectivity / Energetic Lines -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M24,46 H28 M22,52 H26 M24,58 H28" />
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M80,46 H84 M82,52 H86 M80,58 H84" />
+
+</vector>
