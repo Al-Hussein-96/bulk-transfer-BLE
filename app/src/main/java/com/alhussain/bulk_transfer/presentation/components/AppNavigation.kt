@@ -3,7 +3,6 @@ package com.alhussain.bulk_transfer.presentation.components
 import android.Manifest
 import android.os.Build
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,23 +12,19 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.BluetoothSearching
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Devices
-import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alhussain.bulk_transfer.presentation.BluetoothViewModel
-import com.alhussain.bulk_transfer.presentation.qr.QrCodeGenerator
-import com.alhussain.bulk_transfer.presentation.qr.QrScannerScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -44,16 +39,14 @@ fun AppNavigation(
                 Manifest.permission.BLUETOOTH_SCAN,
                 Manifest.permission.BLUETOOTH_CONNECT,
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.CAMERA
+                Manifest.permission.ACCESS_COARSE_LOCATION
             )
         } else {
             listOf(
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.BLUETOOTH_ADMIN,
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.CAMERA
+                Manifest.permission.ACCESS_COARSE_LOCATION
             )
         }
     )
@@ -86,6 +79,7 @@ fun AppNavigation(
                     navigationIcon = {
                         IconButton(onClick = {
                             viewModel.disconnect()
+                            viewModel.stopScan()
                             currentScreen = Screen.ModeSelection
                         }) {
                             Icon(
@@ -109,7 +103,10 @@ fun AppNavigation(
             when (currentScreen) {
                 Screen.ModeSelection -> {
                     ModeSelectionScreen(
-                        onSenderSelected = { currentScreen = Screen.Sender },
+                        onSenderSelected = { 
+                            currentScreen = Screen.Sender 
+                            viewModel.startScan()
+                        },
                         onReceiverSelected = {
                             currentScreen = Screen.Receiver
                             viewModel.waitForIncomingConnections()
@@ -122,9 +119,22 @@ fun AppNavigation(
                             onSendVouchers = { viewModel.sendVouchers() }
                         )
                     } else {
-                        QrScannerScreen(onQrCodeScanned = { address ->
-                            viewModel.connectToAddress(address)
-                        })
+                        // Filtering devices to only show ones with a name to keep list clean
+                        val filteredScannedDevices = state.scannedDevices.filter { !it.name.isNullOrBlank() }
+                        val filteredPairedDevices = state.pairedDevices.filter { !it.name.isNullOrBlank() }
+                        
+                        DeviceScreen(
+                            state = state.copy(
+                                scannedDevices = filteredScannedDevices,
+                                pairedDevices = filteredPairedDevices
+                            ),
+                            onStartScan = { viewModel.startScan() },
+                            onStopScan = { viewModel.stopScan() },
+                            onDeviceClick = { device ->
+                                viewModel.connectToDevice(device)
+                            },
+                            onStartServer = {}
+                        )
                     }
                 }
                 Screen.Receiver -> {
@@ -136,7 +146,7 @@ fun AppNavigation(
                             )
                         }
                     } else {
-                        ReceiverWaitingScreen(localAddress = state.localAddress)
+                        ReceiverWaitingScreen()
                     }
                 }
             }
@@ -202,7 +212,7 @@ fun SenderConnectedScreen(onSendVouchers: () -> Unit) {
 }
 
 @Composable
-fun ReceiverWaitingScreen(localAddress: String?) {
+fun ReceiverWaitingScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -210,36 +220,19 @@ fun ReceiverWaitingScreen(localAddress: String?) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if (localAddress != null) {
-            val qrBitmap = remember(localAddress) {
-                QrCodeGenerator.generateQrCode(localAddress)
-            }
-            qrBitmap?.let {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = "Receiver QR Code",
-                    modifier = Modifier
-                        .size(250.dp)
-                        .padding(16.dp)
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .padding(8.dp)
-                )
-            }
-        } else {
-            Box(contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(140.dp),
-                    strokeWidth = 8.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.BluetoothSearching,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+        Box(contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(140.dp),
+                strokeWidth = 8.dp,
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.BluetoothSearching,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
         }
         
         Spacer(modifier = Modifier.height(40.dp))
@@ -253,7 +246,7 @@ fun ReceiverWaitingScreen(localAddress: String?) {
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "Sender: Scan this QR code to connect and start the transfer.",
+            text = "Make sure your Bluetooth is visible and the sender is scanning.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -298,8 +291,8 @@ fun ModeSelectionScreen(
         
         ModeCard(
             title = "I want to Send",
-            subtitle = "Scan QR to connect and send",
-            icon = Icons.Rounded.QrCodeScanner,
+            subtitle = "Scan and select a device to connect",
+            icon = Icons.Rounded.Search,
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             onClick = onSenderSelected
@@ -309,7 +302,7 @@ fun ModeSelectionScreen(
         
         ModeCard(
             title = "I want to Receive",
-            subtitle = "Show QR to accept vouchers",
+            subtitle = "Wait for incoming connection",
             icon = Icons.AutoMirrored.Rounded.BluetoothSearching,
             containerColor = MaterialTheme.colorScheme.tertiary,
             contentColor = MaterialTheme.colorScheme.onTertiary,
@@ -354,17 +347,13 @@ fun ModeCard(
                     Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(28.dp))
                 }
             }
+            
             Spacer(modifier = Modifier.width(20.dp))
+            
             Column {
-                Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(text = subtitle, style = MaterialTheme.typography.labelMedium, color = contentColor.copy(alpha = 0.8f))
+                Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(text = subtitle, fontSize = 14.sp, color = contentColor.copy(alpha = 0.8f))
             }
         }
     }
-}
-
-sealed class Screen {
-    data object ModeSelection : Screen()
-    data object Sender : Screen()
-    data object Receiver : Screen()
 }

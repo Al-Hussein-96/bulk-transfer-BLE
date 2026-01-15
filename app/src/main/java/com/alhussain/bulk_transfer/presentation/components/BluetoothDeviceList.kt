@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.alhussain.bulk_transfer.domain.model.BluetoothDeviceDomain
 
 @Composable
@@ -28,15 +27,19 @@ fun BluetoothDeviceList(
     onClick: (BluetoothDeviceDomain) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // We only show devices that have a name to avoid showing system/unidentified devices
+    val validPaired = pairedDevices.filter { !it.name.isNullOrBlank() }
+    val validScanned = scannedDevices.filter { !it.name.isNullOrBlank() }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(bottom = 80.dp) // Space for floating buttons
     ) {
-        if (pairedDevices.isNotEmpty()) {
+        if (validPaired.isNotEmpty()) {
             item {
                 SectionHeader(title = "Paired Devices")
             }
-            items(pairedDevices) { device ->
+            items(validPaired) { device ->
                 BluetoothDeviceItem(
                     device = device,
                     icon = Icons.Rounded.BluetoothConnected,
@@ -45,16 +48,33 @@ fun BluetoothDeviceList(
             }
         }
 
-        if (scannedDevices.isNotEmpty()) {
+        if (validScanned.isNotEmpty()) {
             item {
                 SectionHeader(title = "Nearby Devices")
             }
-            items(scannedDevices) { device ->
+            items(validScanned) { device ->
                 BluetoothDeviceItem(
                     device = device,
                     icon = Icons.Rounded.Bluetooth,
                     onClick = onClick
                 )
+            }
+        }
+        
+        if (validPaired.isEmpty() && validScanned.isEmpty()) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Searching for devices...",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
