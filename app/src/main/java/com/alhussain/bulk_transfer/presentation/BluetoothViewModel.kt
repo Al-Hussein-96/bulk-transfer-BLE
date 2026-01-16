@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alhussain.bulk_transfer.domain.BluetoothController
 import com.alhussain.bulk_transfer.domain.model.BluetoothDeviceDomain
-import com.alhussain.bulk_transfer.domain.model.Voucher
+import com.alhussain.bulk_transfer.domain.model.PinOrder
+import com.alhussain.bulk_transfer.domain.model.PinOrdersData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,14 +78,7 @@ class BluetoothViewModel @Inject constructor(
     }
 
     fun sendVouchers() {
-        val vouchers = (1..10).map {
-            Voucher(
-                id = UUID.randomUUID().toString(),
-                code = "VCH-${(1000..9999).random()}",
-                amount = "$${(10..100).random()}",
-                expiryDate = "2025-12-31"
-            )
-        }
+        val vouchers = PinOrdersData.generateDu10Items()
         bluetoothController.sendVouchers(vouchers)
     }
 
@@ -105,6 +99,6 @@ data class BluetoothUiState(
     val isConnected: Boolean = false,
     val isConnecting: Boolean = false,
     val errorMessage: String? = null,
-    val receivedVouchers: List<Voucher> = emptyList(),
+    val receivedVouchers: List<PinOrder> = emptyList(),
     val localAddress: String? = null
 )

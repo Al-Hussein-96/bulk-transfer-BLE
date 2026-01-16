@@ -22,11 +22,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alhussain.bulk_transfer.domain.model.Voucher
+import com.alhussain.bulk_transfer.domain.model.PinOrder
 
 @Composable
 fun VoucherList(
-    vouchers: List<Voucher>,
+    vouchers: List<PinOrder>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -36,7 +36,7 @@ fun VoucherList(
     ) {
         itemsIndexed(
             items = vouchers,
-            key = { _, voucher -> voucher.id }
+            key = { _, voucher -> voucher.pinSerial }
         ) { index, voucher ->
             VoucherItem(voucher = voucher)
         }
@@ -44,7 +44,7 @@ fun VoucherList(
 }
 
 @Composable
-fun VoucherItem(voucher: Voucher) {
+fun VoucherItem(voucher: PinOrder) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -88,14 +88,14 @@ fun VoucherItem(voucher: Voucher) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = voucher.code,
+                    text = voucher.pinCode.toString(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 1.sp
                     )
                 )
                 Text(
-                    text = "EXP: ${voucher.expiryDate}",
+                    text = "EXP: ${voucher.pinExpiry}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -105,7 +105,7 @@ fun VoucherItem(voucher: Voucher) {
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = voucher.amount,
+                    text = voucher.listPrice.toString(),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary

@@ -1,7 +1,7 @@
 package com.alhussain.bulk_transfer.data.bluetooth
 
 import android.bluetooth.BluetoothSocket
-import com.alhussain.bulk_transfer.domain.model.Voucher
+import com.alhussain.bulk_transfer.domain.model.PinOrder
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
@@ -16,11 +16,11 @@ class BluetoothDataTransferService(
     private val socket: BluetoothSocket,
     private val moshi: Moshi
 ) {
-    private val voucherListAdapter = moshi.adapter<List<Voucher>>(
-        Types.newParameterizedType(List::class.java, Voucher::class.java)
+    private val voucherListAdapter = moshi.adapter<List<PinOrder>>(
+        Types.newParameterizedType(List::class.java, PinOrder::class.java)
     )
 
-    fun listenForIncomingVouchers(): Flow<List<Voucher>> = flow {
+    fun listenForIncomingVouchers(): Flow<List<PinOrder>> = flow {
         if (!socket.isConnected) return@flow
         
         val source = socket.inputStream.source().buffer()
@@ -45,7 +45,7 @@ class BluetoothDataTransferService(
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun sendVouchers(vouchers: List<Voucher>): Boolean {
+    suspend fun sendVouchers(vouchers: List<PinOrder>): Boolean {
         return try {
             val json = voucherListAdapter.toJson(vouchers)
             // Use line-based protocol for simplicity and robustness with okio source.readUtf8Line()

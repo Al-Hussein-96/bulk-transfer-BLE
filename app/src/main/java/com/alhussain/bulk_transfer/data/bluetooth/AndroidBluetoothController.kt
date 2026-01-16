@@ -15,7 +15,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.alhussain.bulk_transfer.domain.BluetoothController
 import com.alhussain.bulk_transfer.domain.model.BluetoothDeviceDomain
-import com.alhussain.bulk_transfer.domain.model.Voucher
+import com.alhussain.bulk_transfer.domain.model.PinOrder
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,8 +56,8 @@ class AndroidBluetoothController(
     override val errors: SharedFlow<String>
         get() = _errors.asSharedFlow()
 
-    private val _receivedVouchers = MutableSharedFlow<List<Voucher>>()
-    override val receivedVouchers: SharedFlow<List<Voucher>>
+    private val _receivedVouchers = MutableSharedFlow<List<PinOrder>>()
+    override val receivedVouchers: SharedFlow<List<PinOrder>>
         get() = _receivedVouchers.asSharedFlow()
 
     private val deviceFoundReceiver = BluetoothDeviceReceiver { device ->
@@ -108,7 +108,7 @@ class AndroidBluetoothController(
     }
 
     override fun startBluetoothServer() {
-        if (!hasBluetoothScanPermission(context)) {
+        if (!hasBluetoothServerPermission(context)) {
             return
         }
         scope.launch {
@@ -183,7 +183,7 @@ class AndroidBluetoothController(
         }
     }
 
-    override fun sendVouchers(vouchers: List<Voucher>) {
+    override fun sendVouchers(vouchers: List<PinOrder>) {
         if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
             return
         }
@@ -242,6 +242,17 @@ class AndroidBluetoothController(
         } else {
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+    private fun hasBluetoothServerPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12+
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+        } else {
+            // Android 8.1 - 11
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
         }
     }
 

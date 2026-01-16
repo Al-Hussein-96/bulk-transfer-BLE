@@ -1,7 +1,13 @@
 package com.alhussain.bulk_transfer.presentation.components
 
 import android.Manifest
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.content.Intent
 import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,11 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alhussain.bulk_transfer.MainActivity
 import com.alhussain.bulk_transfer.presentation.BluetoothViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -33,6 +41,19 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 fun AppNavigation(
     viewModel: BluetoothViewModel
 ) {
+    val context = LocalContext.current
+    val activity = context as Activity
+    // Launcher to request discoverable mode
+    val discoverableLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_CANCELED) {
+            // User allowed discoverable mode, start server
+            viewModel.waitForIncomingConnections()
+        } else {
+            Toast.makeText(context, "Discoverable mode required", Toast.LENGTH_SHORT).show()
+        }
+    }
     val permissionState = rememberMultiplePermissionsState(
         permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(
@@ -109,7 +130,13 @@ fun AppNavigation(
                         },
                         onReceiverSelected = {
                             currentScreen = Screen.Receiver
-                            viewModel.waitForIncomingConnections()
+
+                            discoverableLauncher.launch(
+                                Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+                                    putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1600)
+                                }
+                            )
+//                            viewModel.waitForIncomingConnections()
                         }
                     )
                 }
