@@ -30,12 +30,12 @@ data class PinOrder(
     val tax: Double?,
     val provider: String,
     val logo: String,
-    val printedDate: String?
+    val printedDate: String?,
 )
 
-object PinOrdersData{
-     fun generateDu10Items(): List<PinOrder> {
-        return (1..10).map { num ->
+object PinOrdersData {
+    fun generateDu10Items(numberOfPin: Int): List<PinOrder> =
+        (1..numberOfPin).map { num ->
             PinOrder(
                 reqId = "POS-PIN-19962027-D5KH5SEC6QKS73F6V2AG",
                 customerRef = "1232676671-20260115161647",
@@ -63,8 +63,7 @@ object PinOrdersData{
                 tax = -1.0,
                 provider = "DU",
                 logo = "https://stgapp.axiomwallet.com/gateway/api/v2/static/images/DU_logo.bmp",
-                printedDate = null
+                printedDate = null,
             )
         }
-    }
 }

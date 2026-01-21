@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
             BulkTransferTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     val viewModel = hiltViewModel<BluetoothViewModel>()
                     AppNavigation(viewModel = viewModel)

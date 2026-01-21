@@ -25,7 +25,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -75,7 +75,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.material)
-    
+
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+
     // QR Code dependencies
     implementation(libs.zxing.core)
     implementation(libs.mlkit.barcode.scanning)
